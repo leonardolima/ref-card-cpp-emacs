@@ -1,0 +1,189 @@
+\documentclass[10pt]{article}
+\usepackage{fixltx2e}
+\usepackage[orthodox,l2tabu,abort]{nag}
+
+% Page layout
+\usepackage[landscape,margin=0.5in]{geometry}
+\usepackage{multicol}
+
+% Title area
+\usepackage{titling} % Allows for use of date, author, etc. after \maketitle
+% Ref: http://tex.stackexchange.com/questions/3988/titlesec-versus-titling-mangling-thetitle
+\let\oldtitle\title
+\renewcommand{\title}[1]{\oldtitle{#1}\newcommand{\mythetitle}{#1}}
+\renewcommand{\maketitle}{%
+{\begin{center}\Large \mythetitle\end{center}}
+}
+
+% Document divisions
+\usepackage{titlesec}
+\setcounter{secnumdepth}{0}
+\titlespacing{\section}{0pt}{0pt}{0pt}
+\titlespacing{\subsection}{0pt}{0pt}{0pt}
+\usepackage{nopageno} % To keep \section from resetting page style
+
+\setlength{\parindent}{0pt} % disabling indentation by default
+
+% Lists
+\usepackage{enumitem} % for consistent formatting of lists
+\newlist{ttdesc}{description}{1}
+\setlist[ttdesc]{font=\ttfamily,noitemsep}
+\usepackage{calc} % for \widthof
+
+% Code
+\usepackage{listings}
+\lstset{language=[LaTeX]TeX,%
+  basicstyle=\itshape,%
+  keywordstyle=\normalfont\ttfamily,%
+  morekeywords={part,chapter,subsection,subsubsection,paragraph,subparagraph}%
+  }
+
+\usepackage{lipsum}
+
+\title{C/C++ Development Environment Ref Card for Emacs}
+\author{Leonardo Lima}
+\date{2019}
+
+\begin{document}
+\begin{multicols}{3}
+\maketitle
+
+\section{Source code navigation}
+
+\subsection{Basic movements}
+
+\begin{ttdesc}[labelwidth=\widthof{\texttt{report}}]
+
+\item[\textbf{C-M-f}] runs \emph{forward-sexp}, move forward over a balanced expression that can be a pair or a symbol
+\item[\textbf{C-M-b}] runs \emph{backward-sexp}, move backward over a balanced expression that can be a pair or a symbol
+\item[\textbf{C-M-k}] runs \emph{kill-sexp}, kill balanced expression forward that can be a pair or a symbol
+\item[\textbf{C-M-<SPC>}] runs \emph{mark-sexp}, put mark after following expression that can be a pair or a symbol
+\item[\textbf{C-M-a}] runs \emph{beginning-of-defun}, which moves point to beginning of a function
+\item[\textbf{C-M-e}] runs \emph{end-of-defun}, which moves point to end of a function
+\item[\textbf{C-M-h}] runs \emph{mark-defun}, which put a region around whole current or following function
+
+\end{ttdesc}
+
+\subsection{Find definitions in current buffer}
+
+A tag is a name of an entity in source code. An entity can be a variable, a method definition, an include-operator… A tag contains information such as name of the tag (the name of the variable, class, method), location of this tag in source code and which file it belongs to. As an example, GNU Global generates three tag databases:
+
+\begin{ttdesc}[labelwidth=\widthof{\texttt{report}}]
+\item[GTAGS] definition database
+\item[GRTAGS] reference database
+\item[GPATH] path name database
+\end{ttdesc}
+
+A definition of a tag is where a tag is implemented. For example, a function definition is the body where it is actually implemented, or a variable definition is where the type and its property (i.e static) is specified.
+
+A reference of a tag is where a tag is used in a source tree, but not where it is defined.
+
+\begin{ttdesc}[labelwidth=\widthof{\texttt{report}}]
+
+\item[\textbf{M-.}] runs \emph{helm-gtags-dwim}, jump to tag base on context
+  \begin{itemize}
+  \item If the tag at point is a definition, \emph{helm-gtags} jumps to a reference. If there is more than one reference, it displays a list of references
+  \item If the tag at point is a reference, \emph{helm-gtags} jumps to tag definition
+  \item If the tag at point is an include header, \emph{helm-gtags} it jumps to that header
+  \end{itemize}
+\item[\textbf{C-c g r}] runs \emph{helm-gtags-find-rtags}, which only finds references, based on
+\begin{itemize}
+  \item If point is inside a function, the prompt will be default to the function name
+  \item If point is on a function, it lists references of that functions immediately
+  \item If point is on a variable, \emph{helm-gtags-find-rtags} won't have any effect. You should use \emph{helm-gtags-find-symbol}, which is bound to \textbf{C-c g s}
+\end{itemize}
+\item[\textbf{C-c g a}] runs \emph{helm-gtags-tags-in-this-function}, which list all the functions that the current function - the function that point is inside - calls
+\item[\emph{helm-gtags-find-files}] find files matching regexp
+\item[\emph{helm-gtags-show-stack}] shows visited tags from newest to oldest, from top to bottom
+\end{ttdesc}
+
+\section{Browse source tree with Speedbar file browser}
+
+\begin{ttdesc}[labelwidth=\widthof{\texttt{report}}]
+\item[M-x speedbar] opens a a frame that contains the directory tree
+\end{ttdesc}
+
+\subsection{Basic usage}
+\begin{ttdesc}[labelwidth=\widthof{\texttt{report}}]
+\item[SPC] open the children of a node
+\item[RET] open the node in another window. If node is a file, open that file; if node is a directory, enter that directory; if node is a tag in a file, jump to the location of that tag in the file
+\item[U] go up parent directory
+\item[n] moves to next node
+\item[p] moves to previous node
+\item[M-n] moves to next node at the current level
+\item[M-p] moves to previous node at the current level
+\item[b] switches to buffer list using Speedbar presentation
+\item[f] switches back to file list
+\end{ttdesc}
+
+\section{General completion with company-mode}
+\begin{ttdesc}[labelwidth=\widthof{\texttt{report}}]
+\item[M-n] select next element on the list
+\item[M-p] select previous element on the list
+\item[<return>] complete with current element
+\item[C-s, C-r and C-o] search through completions
+\item[M-(digit)] complete with one of the first 10 candidates
+\item[<f1>] display the documentation for the selected candidate
+\item[C-w] display the source of the selected candidate
+\end{ttdesc}
+
+%% \subsection{Common \texttt{documentclass} options}
+
+%% \begin{ttdesc}[labelwidth=\widthof{\ttfamily{letterpaper/a4paper}}]
+%% \item[10pt/11pt/12pt] Font size.
+%% \item[letterpaper/a4paper] Paper size.
+%% \item[draft] Double-space lines.
+%% \end{ttdesc}
+
+%% \section{Document structure}
+
+%% \vspace{-\baselineskip}
+
+%% \begin{multicols*}{2}
+%% \lstinline|\part{title}| \\
+%% \lstinline|\chapter{title}| \\
+%% \lstinline|\section{title}| \\
+%% \lstinline|\subsection{title}| \\
+%% \lstinline|\subsubsection{title}| \\
+%% \lstinline|\paragraph{title}| \\
+%% \lstinline|\subparagraph{title}|
+%% \end{multicols*}
+
+%% \section{Text properties}
+
+%% \subsection{Font face}
+
+%% \begin{tabular}{lll}
+%% Command & Declaration & Effect \\
+%% \lstinline|\textrm{text}| & \lstinline|{\rmfamily text}| & \textrm{Roman family} \\
+%% \lstinline|\textsf{text}| & \lstinline|{\sffamily text}| & \textsf{Sans serif family} \\
+%% \end{tabular}
+
+%% \section{Math mode}
+
+%% \subsection{Math mode symbols}
+%% \begin{multicols*}{4}
+%% \( \leq \) \verb|\leq| \\
+%% \( \times \) \verb|\times| \\
+%% \( ^{\circ} \) \verb|^{\circ}| \\
+%% \( \infty \) \verb|\infty| \\
+%% \( \supset \) \verb|\supset| \\
+%% \( \subset \) \verb|\subset| \\
+%% \( \cup \) \verb|\cup| \\
+%% \( \dot a \) \verb|\dot a| \\
+%% \( \alpha \) \verb|\alpha| \\
+%% \( \epsilon \) \verb|\epsilon| \\
+%% \( \theta \) \verb|\theta| \\
+%% \( \lambda \) \verb|\lambda| \\
+%% \( \pi \) \verb|\pi| \\
+%% \( \upsilon \) \verb|\upsilon|
+%% \end{multicols*}
+
+%% \section{Filler material}
+
+%% \lipsum
+
+%% \noindent Copyright \textcopyright{} \thedate{} \theauthor{}
+
+\end{multicols}
+\end{document}
